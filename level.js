@@ -147,7 +147,27 @@ module.exports = {
                 let values = get_data(msg.mentions.members.first());
                 print_status(msg.mentions.members.first(), msg.channel, values);
             } else {
+                let regexrank = /(\#\d+)/g;
                 let args = msg.content.substring(8, msg.content.length);
+                if(args.match(regexrank)) {
+                    let newlist = level_data;
+                    newlist.sort(function(a, b) {
+                        return b["exp"] - a["exp"];
+                    })
+                    let regexrank2 = /((\d+))/g
+                    let result = args.match(regexrank2);
+                    let res = parseInt(result) - 1;
+                    if(res < newlist.length) {
+                        member = msg.guild.members.find("id", newlist[res]["id"]);
+                        if(member){
+                            let values = get_data(member);
+                            print_status(member, msg.channel, values);
+                        }
+                    } else {
+                        msg.channel.send("Rank " + res.toString() + " not found.");
+                    }
+                }
+                
                 
                 let regex = /"([^"]*)"/g;
                 let names = args.match(regex);
