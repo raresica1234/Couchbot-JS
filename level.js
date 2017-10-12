@@ -56,12 +56,13 @@ function save() {
  */
 
 function print_status(author, channel, values) {
-    let name = author.username;
-    if (typeof author.nickname != 'undefined')
+    let name = author.user.username;
+    if (typeof author.nickname != 'undefined' && author.nickname != null)
         name = author.nickname;
 
     let embed = new discord.RichEmbed();
     let message = "Level: " + values[0] + "\nExp: " + values[2] + "/" + LEVEL_EXPERIENCE_NEEDED.toString() +"\nRank: " + values[3];
+    console.log(author);
     embed.setAuthor(name, author.user.displayAvatarURL);
     embed.setDescription(message);
     embed.setTitle(values[1]);
@@ -159,12 +160,12 @@ module.exports = {
                     let res = parseInt(result) - 1;
                     if(res < newlist.length) {
                         member = msg.guild.members.find("id", newlist[res]["id"]);
-                        if(member){
+                        if(typeof member != 'undefined'){
                             let values = get_data(member);
                             print_status(member, msg.channel, values);
                         }
                     } else {
-                        msg.channel.send("Rank " + res.toString() + " not found.");
+                        msg.channel.send("Rank " + result.toString() + " not found.");
                     }
                 }
                 
