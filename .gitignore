@@ -1,0 +1,4 @@
+config/*.json
+data/*.json
+.vscode/
+node_modules/
