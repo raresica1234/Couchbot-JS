@@ -19,7 +19,9 @@ module.exports = {
         \n!top <count> - displays the top of the first <count> user \
         \n!top <amount1> <amount2> - displays the top from amount1 to amount1 + amount2 \
         \n!givexp <amount> <user> - gives the specified amount of xp to the user, requires owner \
-        \n!takexp <amount> <user> - takes the specified amount of xp to the user, requires owner");
+        \n!takexp <amount> <user> - takes the specified amount of xp to the user, requires owner \
+        \n!setnotification - sets the channel in which the notifications will take place, default is direct messages, requires owner \
+        \n!clearnotification - clears the channel in which notifications take place, requires owner");
     }
 
 }

@@ -14,7 +14,7 @@ bot.on("ready", () => {
     console.log("Bot name: " + bot.user.username);
     console.log("Bot id: " + bot.user.id);
     rights.load();
-    level.load();
+    level.load(bot.user.id);
     behaviour.load();
 })
 
@@ -28,22 +28,23 @@ bot.on('message', msg => {
         behaviour.xp_block(msg);
     } else if(content.startsWith("!unblockxp") && rights.isOwner(msg.author)) {
         behaviour.xp_unblock(msg);
+    } else if(content.startsWith("!setnotification") && rights.isOwner(msg.author)){
+        level.setNotificationChannel(msg);
+    } else if(content.startsWith("!clearnotification") && rights.isOwner(msg.author)){
+        level.clearNotificationChannel(msg);
     } else if (!behaviour.is_output_blocked(msg)) {
         if(content.startsWith("!help")) {
             commands.help(msg);
-        }
-        else if (content.startsWith("!status")) {
+        } else if (content.startsWith("!status")) {
             level.status(msg);
-        }
-        else if (content.startsWith("!top")) {
+        } else if (content.startsWith("!top")) {
             level.top(msg);
-        }
-        else if(content.startsWith("!givexp") && rights.isOwner(msg.author)){
+        } else if(content.startsWith("!givexp") && rights.isOwner(msg.author)){
             level.givexp(msg);
-        }
-        else if(content.startsWith("!takexp") && rights.isOwner(msg.author)){
+        } else if(content.startsWith("!takexp") && rights.isOwner(msg.author)){
             level.takexp(msg);
         }
+       
     }
 
     if (!behaviour.is_xp_blocked(msg)) {

@@ -4,18 +4,22 @@ const fs = require("fs")
 var Message = discord.Message;
 var TextChannel = discord.TextChannel;
 var GuildMember = discord.GuildMember;
+var Guild = discord.Guild;
 
+var bot_id;
 var user_data = [];
 var level_data = [];
 var last_ranks = [];
+var notificationChannel = null;
 // level_data: {"Name"="<name>", "LevelPoints" = <points>}
 var FILE_PATH = "data/level_data.json";
+var NOTIFICATION_PATH = "data/notification.json";
 
 var LEVEL_MAX = 100;
 var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "No-lifer"];
 var LEVEL_EXPERIENCE_NEEDED = 350;
-var LEVEL_RANDOM_VALUE_MIN = 15;
-var LEVEL_RANDOM_VALUE_MAX = 40;
+var LEVEL_RANDOM_VALUE_MIN = 150;
+var LEVEL_RANDOM_VALUE_MAX = 400;
 var LEVEL_TIMER = 300 * 1000; // 5 minutes
 
 var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
@@ -35,11 +39,12 @@ function tick() {
         if (user_data[user]["nof"] > 0) {
             uID = user_data[user]["id"];
             let found = false;
-            for (leveluser in level_data) 
+            for (leveluser in level_data) {
                 if (level_data[leveluser]["id"] == uID) {
                     level_data[leveluser]["exp"] += randomXp();
                     found = true;
                 }
+            }
             if (!found)
                 level_data.push({"id": user_data[user]["id"], "exp": randomXp()});
         }
@@ -48,6 +53,7 @@ function tick() {
 
 function save() {
     fs.writeFileSync(FILE_PATH, JSON.stringify(level_data));
+    fs.writeFileSync(NOTIFICATION_PATH, JSON.stringify(notificationChannel));
 }
 
 /**
@@ -62,7 +68,6 @@ function print_status(author, channel, values) {
 
     let embed = new discord.RichEmbed();
     let message = "Level: " + values[0] + "\nExp: " + values[2] + "/" + LEVEL_EXPERIENCE_NEEDED.toString() +"\nRank: " + values[3];
-    console.log(author);
     embed.setAuthor(name, author.user.displayAvatarURL);
     embed.setDescription(message);
     embed.setTitle(values[1]);
@@ -103,15 +108,53 @@ function get_data(author) {
     return data;
 }
 
+/**
+ * @param {Message} msg
+ * @param {Guild} guild
+ */
+function newRankNotification(user, guild) {
+    let author = guild.members.find("id", level_data[user]["id"]);
+    if (author.id == bot_id && notificationChannel == null) 
+        return;
+    let name = author.user.username;
+    if (typeof author.nickname != 'undefined' && author.nickname != null)
+        name = author.nickname;
+
+    let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+
+    let embed = new discord.RichEmbed();
+    let message = "You reached a new rank!\nYour new rank is " + rank;
+    embed.setAuthor(name, author.user.displayAvatarURL);
+    embed.setDescription(message);
+    embed.setTitle("Congratulations!");
+    embed.setColor(randomColor());
+
+    if(notificationChannel == null)
+        author.send(embed);
+    else {
+        guild.channels.find("id", notificationChannel).send(embed);
+    }   
+        
+}
+
 module.exports = {
 
-    load: function() {
+    load: function(id) {
         if(fs.existsSync(FILE_PATH)) {
             level_data = JSON.parse(fs.readFileSync(FILE_PATH));
+            for(let user in level_data) {
+                let rank = Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0)
+                last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[parseInt(rank)]});
+            }
+        }
+
+        if(fs.existsSync(NOTIFICATION_PATH)) {
+            notificationChannel = JSON.parse(fs.readFileSync(NOTIFICATION_PATH));
         }
 
         setInterval(tick, LEVEL_TIMER); // because milliseconds
         setInterval(save, SAVE_INTERVAL);
+        bot_id = id;
     },
 
     /**
@@ -129,6 +172,16 @@ module.exports = {
         }
         user_data.push({"id": msg.author.id, "nof": 1});
 
+        for(user in level_data) {
+            let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+            if(typeof last_ranks[user] == 'undefined') {
+                last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
+            }
+            if(rank != last_ranks[user]["rank"]) {
+                last_ranks[user]["rank"] = rank;
+                newRankNotification(user, msg.guild);
+            }
+        }
     },
 
     /**
@@ -208,6 +261,11 @@ module.exports = {
             let amount1 = Math.max(parseInt(data[1]), 1);
             let amount2 = Math.max(Math.min(parseInt(data[2]), 30), 1);
 
+            if(isNaN(amount1) || isNaN(amount2)) {
+                msg.channel.send("Syntax incorrect");
+                return;
+            }
+
             let newlist = level_data;
             newlist.sort(function(a, b) {
                 return b["exp"] - a["exp"];
@@ -230,6 +288,10 @@ module.exports = {
             return;
         }
         let amount = Math.max(Math.min(parseInt(data[1]), 30), 1);
+        if(isNaN(amount)){
+            msg.channel.send("Syntax incorrect");
+            return;
+        }
 
         let newlist = level_data;
         newlist.sort(function(a, b) {
@@ -348,5 +410,19 @@ module.exports = {
             msg.channel.send("Syntax incorrect!");
         }
         
+    },
+
+    /**
+     * @param {Message} msg
+     */
+    setNotificationChannel: function(msg) {
+        notificationChannel = msg.channel.id;
+    },
+
+    /**
+     * @param {Message} msg
+     */
+    clearNotificationChannel: function(msg) {
+        notificationChannel = null;
     }
 }
