@@ -1,9 +1,12 @@
 const Discord = require("discord.js")
 const fs = require("fs")
+
 const rights = require("./utils/rights")
 const behaviour = require("./utils/behaviour")
 const commands = require("./commands")
+const timezone = require("./timezone")
 const level = require("./level");
+
 const bot = new Discord.Client();
 
 var botConfig = JSON.parse(fs.readFileSync('config/config.json', 'utf-8'));
@@ -16,6 +19,7 @@ bot.on("ready", () => {
     rights.load();
     level.load(bot.user.id);
     behaviour.load();
+    timezone.load();
 })
 
 bot.on('message', msg => {
@@ -43,8 +47,13 @@ bot.on('message', msg => {
             level.givexp(msg);
         } else if(content.startsWith("!takexp") && rights.isOwner(msg.author)){
             level.takexp(msg);
+        } else if(content.startsWith("!timezone set")) {
+            timezone.set(msg);
+        } else if(content.startsWith("!timezone get")) {
+            timezone.get(msg);
+        } else if(content.startsWith("!localtime")) {
+            timezone.localtime(msg);
         }
-       
     }
 
     if (!behaviour.is_xp_blocked(msg)) {

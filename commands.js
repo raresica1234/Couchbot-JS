@@ -21,7 +21,11 @@ module.exports = {
         \n!givexp <amount> <user> - gives the specified amount of xp to the user, requires owner \
         \n!takexp <amount> <user> - takes the specified amount of xp to the user, requires owner \
         \n!setnotification - sets the channel in which the notifications will take place, default is direct messages, requires owner \
-        \n!clearnotification - clears the channel in which notifications take place, requires owner");
+        \n!clearnotification - clears the channel in which notifications take place, requires owner \
+        \n!timezone get <name> - gets the timezone of the user, if user has specified it \
+        \n!timezone set <value> - sets your timezone location (+/- number) ");
     }
+
+
 
 }
