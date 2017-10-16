@@ -21,12 +21,10 @@ A file called "config.json" which contains the following:
 Next, you'll need to set yourself permission to use the bot's commands like __!block__ or __!unblock__, to do that you simply create a file called "**rights.json**"(*still in the config folder*). Syntax:
 
 ```json
-[
-    {
-        "owners":["id1", "id2"],
-        "admins":["id3", "id4"]
-    }
-]
+{
+	"owners":["id1", "id2"],
+	"admins":["id3", "id4"]
+}
 ```
 __Note__: Currently the ***admin*** is not *in use* meaning you should set yourself to be a owner so you'll have the higher permission.
 
