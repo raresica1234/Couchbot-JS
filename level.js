@@ -163,19 +163,22 @@ module.exports = {
      */
     processMessage: function(msg) {
         for(user in level_data) {
+            let found = false;
             for(user2 in last_ranks) {
                 if(level_data[user]["id"] != last_ranks[user2]["id"]) {
                     continue;
                 }
 
                 let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
-
+                found = true;
                 if(last_ranks[user2]["rank"] != supposedRank) {
                     last_ranks[user2]["rank"] = supposedRank;
                     newRankNotification(user, msg.guild);
                     break;
-                } 
-                
+                }
+            }
+            if(!found) {
+                last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
             }
         }
 
