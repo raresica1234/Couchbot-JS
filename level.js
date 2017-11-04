@@ -18,8 +18,8 @@ var NOTIFICATION_PATH = "data/notification.json";
 var LEVEL_MAX = 100;
 var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "No-lifer"];
 var LEVEL_EXPERIENCE_NEEDED = 350;
-var LEVEL_RANDOM_VALUE_MIN = 150;
-var LEVEL_RANDOM_VALUE_MAX = 400;
+var LEVEL_RANDOM_VALUE_MIN = 15;
+var LEVEL_RANDOM_VALUE_MAX = 40;
 var LEVEL_TIMER = 300 * 1000; // 5 minutes
 
 var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
@@ -121,7 +121,6 @@ function newRankNotification(user, guild) {
         name = author.nickname;
 
     let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
-
     let embed = new discord.RichEmbed();
     let message = "You reached a new rank!\nYour new rank is " + rank;
     embed.setAuthor(name, author.user.displayAvatarURL);
@@ -143,9 +142,11 @@ module.exports = {
         if(fs.existsSync(FILE_PATH)) {
             level_data = JSON.parse(fs.readFileSync(FILE_PATH));
             for(let user in level_data) {
-                let rank = Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0)
-                last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[parseInt(rank)]});
+                let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+                last_ranks.push({"id": level_data[user]["id"], "rank": rank});
             }
+            console.log(level_data);
+            console.log(last_ranks);
         }
 
         if(fs.existsSync(NOTIFICATION_PATH)) {
@@ -161,9 +162,26 @@ module.exports = {
      * @param {Message} msg
      */
     processMessage: function(msg) {
+        for(user in level_data) {
+            for(user2 in last_ranks) {
+                if(level_data[user]["id"] != last_ranks[user2]["id"]) {
+                    continue;
+                }
+
+                let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+
+                if(last_ranks[user2]["rank"] != supposedRank) {
+                    last_ranks[user2]["rank"] = supposedRank;
+                    newRankNotification(user, msg.guild);
+                    break;
+                } 
+                
+            }
+        }
+
         if(msg.content.startsWith("!")) 
             return;
-        
+
         for(user in user_data) {
             if (msg.author.id == user_data[user]["id"]) {
                 user_data[user]["nof"] += 1;
@@ -172,16 +190,6 @@ module.exports = {
         }
         user_data.push({"id": msg.author.id, "nof": 1});
 
-        for(user in level_data) {
-            let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
-            if(typeof last_ranks[user] == 'undefined') {
-                last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
-            }
-            if(rank != last_ranks[user]["rank"]) {
-                last_ranks[user]["rank"] = rank;
-                newRankNotification(user, msg.guild);
-            }
-        }
     },
 
     /**

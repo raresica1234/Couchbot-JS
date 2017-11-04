@@ -32,6 +32,7 @@ module.exports = {
         let data = JSON.parse(fs.readFileSync("config/rights.json"));
         owners = data.owners;
         admins = data.admins;
+        console.log(owners);
     },
 
     /**
