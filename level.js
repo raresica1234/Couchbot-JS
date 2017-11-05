@@ -314,7 +314,10 @@ module.exports = {
         for(let i =0; i < amount; i++) {
             if(i < newlist.length) {
                 let member = msg.guild.members.find("id", newlist[i]["id"]);
-                message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+                if(!member)
+                    message += (i + 1).toString() + ". " + "Not found" + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+                else
+                    message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
             }
         }
 
