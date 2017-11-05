@@ -128,7 +128,7 @@ function newRankNotification(user, guild) {
     embed.setTitle("Congratulations!");
     embed.setColor(randomColor());
 
-    if(notificationChannel == null)
+    if(!notificationChannel || typeof notificationChannel == 'undefined')
         author.send(embed);
     else {
         guild.channels.find("id", notificationChannel).send(embed);
