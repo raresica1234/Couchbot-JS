@@ -46,6 +46,9 @@ bot.on("ready", () => {
     level.load(bot.user.id);
     behaviour.load();
     timezone.load();
+
+    // Misc
+    commands.reg("!help", commands.help, 2, "Lists all the available commands");
 })
 
 
@@ -53,42 +56,9 @@ bot.on("ready", () => {
 // Process bot message
 //
 bot.on('message', msg => {
-    let content = msg.content.toLowerCase();
+    commands.process(msg);
 
-    
-    
-    if(content.startsWith("!block") && rights.isOwner(msg.author)){
-        behaviour.output_block(msg);
-    } else if(content.startsWith("!unblock") && rights.isOwner(msg.author)) {
-        behaviour.output_unblock(msg);
-    } else if(content.startsWith("!blockxp") && rights.isOwner(msg.author)) {
-        behaviour.xp_block(msg);
-    } else if(content.startsWith("!unblockxp") && rights.isOwner(msg.author)) {
-        behaviour.xp_unblock(msg);
-    } else if(content.startsWith("!setnotification") && rights.isOwner(msg.author)){
-        level.setNotificationChannel(msg);
-    } else if(content.startsWith("!clearnotification") && rights.isOwner(msg.author)){
-        level.clearNotificationChannel(msg);
-    } else if (!behaviour.is_output_blocked(msg)) {
-        if(content.startsWith("!help")) {
-            commands.help(msg);
-        } else if (content.startsWith("!status")) {
-            level.status(msg);
-        } else if (content.startsWith("!top")) {
-            level.top(msg);
-        } else if(content.startsWith("!givexp") && rights.isOwner(msg.author)){
-            level.givexp(msg);
-        } else if(content.startsWith("!takexp") && rights.isOwner(msg.author)){
-            level.takexp(msg);
-        } else if(content.startsWith("!timezone set")) {
-            timezone.set(msg);
-        } else if(content.startsWith("!timezone get")) {
-            timezone.get(msg);
-        } else if(content.startsWith("!localtime")) {
-            timezone.localtime(msg);
-        }
-    }
-
+    // Process experience
     if (!behaviour.is_xp_blocked(msg)) {
         level.processMessage(msg);
     }

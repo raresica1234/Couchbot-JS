@@ -1,5 +1,6 @@
 const discord = require("discord.js");
 const fs = require("fs")
+const commands = require("./commands")
 
 var Message = discord.Message;
 var TextChannel = discord.TextChannel;
@@ -136,9 +137,260 @@ function newRankNotification(user, guild) {
         
 }
 
+/**
+ * @param {Message} msg
+ */
+function status(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
+    
+    if (msg.content.toLowerCase() == "!status" || msg.content.toLowerCase() == "!status "){
+        let values = get_data(msg.member);
+        print_status(msg.member, msg.channel, values);
+    } else {
+        if (msg.mentions.members.array().length > 0) {
+            let values = get_data(msg.mentions.members.first());
+            print_status(msg.mentions.members.first(), msg.channel, values);
+        } else {
+            let regexrank = /(\#\d+)/g;
+            let args = msg.content.substring(8, msg.content.length);
+            if(args.match(regexrank)) {
+                let newlist = level_data;
+                newlist.sort(function(a, b) {
+                    return b["exp"] - a["exp"];
+                })
+                let regexrank2 = /((\d+))/g
+                let result = args.match(regexrank2);
+                let res = parseInt(result) - 1;
+                if(res < newlist.length) {
+                    member = msg.guild.members.find("id", newlist[res]["id"]);
+                    if(typeof member != 'undefined'){
+                        let values = get_data(member);
+                        print_status(member, msg.channel, values);
+                    }
+                } else {
+                    msg.channel.send("Rank " + result.toString() + " not found.");
+                }
+            }
+            
+            
+            let regex = /"([^"]*)"/g;
+            let names = args.match(regex);
+            if (!names) {
+                names = args.split(" ")
+                if (names.length == 0)
+                    names = [args];
+            } else {
+                for(let i =0 ; i < names.length; i++)
+                    names[i] = names[i].substring(1, names[i].length - 1);
+            }
+
+            let x = names.length > 2 ? 2 : names.length;
+
+            for (let i=0; i < x; i++) {
+                let member = msg.guild.members.find("displayName", names[i]);
+                if (member) {
+                    let values = get_data(member);
+                    print_status(member, msg.channel, values);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @param {Message} msg
+ */
+function top(msg) {
+    let data = msg.content.split(" ");
+
+    if(data.length < 2) {
+        msg.channel.send("Syntax incorrect!");
+        return;
+    }
+    if(data.length >= 3) {
+        let amount1 = Math.max(parseInt(data[1]), 1);
+        let amount2 = Math.max(Math.min(parseInt(data[2]), 30), 1);
+
+        if(isNaN(amount1) || isNaN(amount2)) {
+            msg.channel.send("Syntax incorrect");
+            return;
+        }
+
+        let newlist = level_data;
+        newlist.sort(function(a, b) {
+            return b["exp"] - a["exp"];
+        })
+
+        let message = ""
+
+        for(let i =amount1 - 1; i < amount1 + amount2; i++) {
+            if(i < newlist.length) {
+                let member = msg.guild.members.find("id", newlist[i]["id"]);
+                message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+            }
+        }
+
+        let embed = new discord.RichEmbed();
+        embed.setDescription(message);
+        embed.setTitle("Top from " + amount1.toString() + " to " + (amount1 + amount2).toString());
+        embed.setColor(randomColor());
+        msg.channel.send(embed);
+        return;
+    }
+    let amount = Math.max(Math.min(parseInt(data[1]), 30), 1);
+    if(isNaN(amount)){
+        msg.channel.send("Syntax incorrect");
+        return;
+    }
+
+    let newlist = level_data;
+    newlist.sort(function(a, b) {
+        return b["exp"] - a["exp"];
+    })
+    
+    let message = ""
+
+    for(let i =0; i < amount; i++) {
+        if(i < newlist.length) {
+            let member = msg.guild.members.find("id", newlist[i]["id"]);
+            if(!member)
+                message += (i + 1).toString() + ". " + "Not found" + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+            else
+                message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+        }
+    }
+
+    let embed = new discord.RichEmbed();
+    embed.setDescription(message);
+    embed.setTitle("Top " + amount.toString());
+    embed.setColor(randomColor());
+    msg.channel.send(embed);
+}
+
+/**
+ * @param {Message} msg
+ */
+function givexp(msg) {
+    let data = msg.content.split(" ");
+
+    if(typeof data != 'undefined' && data.length >= 3) {
+        let amount = Math.max(parseInt(data[1]), 0);
+        let name = data[2];
+        for(let i = 2; i < data.length - 1; i++)
+            name += " " + data[i];
+        
+        let found = false;
+        if (msg.mentions.members.array().length > 0) {
+            for (user in level_data) 
+                if (level_data[user]["id"] == msg.mentions.members.first().id) {
+                    level_data[user]["exp"] += amount;
+                    found = true;
+                }
+            if (!found) {
+                level_data.push({"id": msg.mentions.members.first().id, "exp": amount})
+            }
+            msg.channel.send(amount.toString() + " xp has been sucesfully added to " + msg.mentions.members.first().displayName);
+            return;
+        }
+
+        let member = msg.guild.members.find("displayName", name);
+        if (member) {
+            for (user in level_data) 
+                if (level_data[user]["id"] == member.id) {
+                    level_data[user]["exp"] += amount;
+                    found = true;
+                }
+            if (!found)
+                level_data.push({"id": member.id, "exp": amount})
+            msg.channel.send(amount.toString() + " xp has been sucesfully added to " + member.displayName);
+            return;
+        
+        }
+        msg.channel.send("Member not found!");
+    } else {
+        msg.channel.send("Syntax incorrect!");
+    }
+}
+
+/**
+ * @param {Message} msg
+ */
+function takexp(msg) {
+    let data = msg.content.split(" ");
+
+    if(typeof data != 'undefined' && data.length >= 3) {
+        let amount = Math.max(parseInt(data[1]), 0);
+        let name = data[2];
+        for(let i = 2; i < data.length - 1; i++)
+            name += " " + data[i];
+        
+        let found = false;
+        if (msg.mentions.members.array().length > 0) {
+            for (user in level_data) 
+                if (level_data[user]["id"] == msg.mentions.members.first().id) {
+                    if(level_data[user]["exp"] >= amount)
+                        level_data[user]["exp"] -= amount;
+                    else
+                        level_data[user]["exp"] = 0;
+                    found = true;
+                }
+            if (!found) {
+                level_data.push({"id": msg.mentions.members.first().id, "exp": 0})
+            }
+            msg.channel.send(amount.toString() + " xp has been sucesfully taken from " + msg.mentions.members.first().displayName);
+            return;
+        }
+
+        let member = msg.guild.members.find("displayName", name);
+        if (member) {
+            for (user in level_data) 
+                if (level_data[user]["id"] == member.id) {
+                    if(level_data[user]["exp"] >= amount)
+                        level_data[user]["exp"] -= amount;
+                    else
+                        level_data[user]["exp"] = 0;
+                    found = true;
+                }
+            if (!found)
+                level_data.push({"id": member.id, "exp": 0})
+            msg.channel.send(amount.toString() + " xp has been sucesfully taken from " + member.displayName);
+            return;
+        
+        }
+        msg.channel.send("Member not found!");
+    } else {
+        msg.channel.send("Syntax incorrect!");
+    }
+}
+
+/**
+ * @param {Message} msg
+ */
+function setNotificationChannel(msg) {
+    notificationChannel = msg.channel.id;
+}
+
+/**
+ * @param {Message} msg
+ */
+function clearNotificationChannel(msg) {
+    notificationChannel = null;
+}
+
 module.exports = {
 
     load: function(id) {
+        // Register commands
+        commands.reg("!status", status, 2, "displays the status of the user");
+        commands.reg("!top", top, 2, "displays the top users");
+        commands.reg("!givexp", givexp, 0, "gives the specified amount of xp to the user");
+        commands.reg("!takexp", takexp, 0, "takes the specified amount of xp from the user");
+        commands.reg("!setnotification", setNotificationChannel, 0, "blocks the output of the current channel");
+        commands.reg("!clearnotification", clearNotificationChannel, 0, "clears the channel in which notifications take place");
+
         if(fs.existsSync(FILE_PATH)) {
             level_data = JSON.parse(fs.readFileSync(FILE_PATH));
             for(let user in level_data) {
@@ -172,7 +424,7 @@ module.exports = {
                 if(level_data[user]["id"] != last_ranks[user2]["id"]) {
                     continue;
                 }
-
+    
                 let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
                 found = true;
                 if(last_ranks[user2]["rank"] != supposedRank) {
@@ -185,10 +437,10 @@ module.exports = {
                 last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
             }
         }
-
+    
         if(msg.content.startsWith("!")) 
             return;
-
+    
         for(user in user_data) {
             if (msg.author.id == user_data[user]["id"]) {
                 user_data[user]["nof"] += 1;
@@ -196,251 +448,5 @@ module.exports = {
             }
         }
         user_data.push({"id": msg.author.id, "nof": 1});
-
-    },
-
-    /**
-     * @param {Message} msg
-     */
-    status: function(msg) {
-        if (!msg.guild) {
-            msg.channel.send("You can't do that here, you must send the message from a server.");
-            return;
-        }
-        
-        if (msg.content.toLowerCase() == "!status" || msg.content.toLowerCase() == "!status "){
-            let values = get_data(msg.member);
-            print_status(msg.member, msg.channel, values);
-        } else {
-            if (msg.mentions.members.array().length > 0) {
-                let values = get_data(msg.mentions.members.first());
-                print_status(msg.mentions.members.first(), msg.channel, values);
-            } else {
-                let regexrank = /(\#\d+)/g;
-                let args = msg.content.substring(8, msg.content.length);
-                if(args.match(regexrank)) {
-                    let newlist = level_data;
-                    newlist.sort(function(a, b) {
-                        return b["exp"] - a["exp"];
-                    })
-                    let regexrank2 = /((\d+))/g
-                    let result = args.match(regexrank2);
-                    let res = parseInt(result) - 1;
-                    if(res < newlist.length) {
-                        member = msg.guild.members.find("id", newlist[res]["id"]);
-                        if(typeof member != 'undefined'){
-                            let values = get_data(member);
-                            print_status(member, msg.channel, values);
-                        }
-                    } else {
-                        msg.channel.send("Rank " + result.toString() + " not found.");
-                    }
-                }
-                
-                
-                let regex = /"([^"]*)"/g;
-                let names = args.match(regex);
-                if (!names) {
-                    names = args.split(" ")
-                    if (names.length == 0)
-                        names = [args];
-                } else {
-                    for(let i =0 ; i < names.length; i++)
-                        names[i] = names[i].substring(1, names[i].length - 1);
-                }
-
-                let x = names.length > 2 ? 2 : names.length;
-
-                for (let i=0; i < x; i++) {
-                    let member = msg.guild.members.find("displayName", names[i]);
-                    if (member) {
-                        let values = get_data(member);
-                        print_status(member, msg.channel, values);
-                    }
-                }
-            }
-        }
-    },
-
-    /**
-     * @param {Message} msg
-     */
-    top: function(msg) {
-        let data = msg.content.split(" ");
-
-        if(data.length < 2) {
-            msg.channel.send("Syntax incorrect!");
-            return;
-        }
-        if(data.length >= 3) {
-            let amount1 = Math.max(parseInt(data[1]), 1);
-            let amount2 = Math.max(Math.min(parseInt(data[2]), 30), 1);
-
-            if(isNaN(amount1) || isNaN(amount2)) {
-                msg.channel.send("Syntax incorrect");
-                return;
-            }
-
-            let newlist = level_data;
-            newlist.sort(function(a, b) {
-                return b["exp"] - a["exp"];
-            })
-
-            let message = ""
-
-            for(let i =amount1 - 1; i < amount1 + amount2; i++) {
-                if(i < newlist.length) {
-                    let member = msg.guild.members.find("id", newlist[i]["id"]);
-                    message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
-                }
-            }
-
-            let embed = new discord.RichEmbed();
-            embed.setDescription(message);
-            embed.setTitle("Top from " + amount1.toString() + " to " + (amount1 + amount2).toString());
-            embed.setColor(randomColor());
-            msg.channel.send(embed);
-            return;
-        }
-        let amount = Math.max(Math.min(parseInt(data[1]), 30), 1);
-        if(isNaN(amount)){
-            msg.channel.send("Syntax incorrect");
-            return;
-        }
-
-        let newlist = level_data;
-        newlist.sort(function(a, b) {
-            return b["exp"] - a["exp"];
-        })
-        
-        let message = ""
-
-        for(let i =0; i < amount; i++) {
-            if(i < newlist.length) {
-                let member = msg.guild.members.find("id", newlist[i]["id"]);
-                if(!member)
-                    message += (i + 1).toString() + ". " + "Not found" + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
-                else
-                    message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
-            }
-        }
-
-        let embed = new discord.RichEmbed();
-        embed.setDescription(message);
-        embed.setTitle("Top " + amount.toString());
-        embed.setColor(randomColor());
-        msg.channel.send(embed);
-    },
-
-    /**
-     * @param {Message} msg
-     */
-    givexp: function(msg) {
-        let data = msg.content.split(" ");
-
-        if(typeof data != 'undefined' && data.length >= 3) {
-            let amount = Math.max(parseInt(data[1]), 0);
-            let name = data[2];
-            for(let i = 2; i < data.length - 1; i++)
-                name += " " + data[i];
-            
-            let found = false;
-            if (msg.mentions.members.array().length > 0) {
-                for (user in level_data) 
-                    if (level_data[user]["id"] == msg.mentions.members.first().id) {
-                        level_data[user]["exp"] += amount;
-                        found = true;
-                    }
-                if (!found) {
-                    level_data.push({"id": msg.mentions.members.first().id, "exp": amount})
-                }
-                msg.channel.send(amount.toString() + " xp has been sucesfully added to " + msg.mentions.members.first().displayName);
-                return;
-            }
-
-            let member = msg.guild.members.find("displayName", name);
-            if (member) {
-                for (user in level_data) 
-                    if (level_data[user]["id"] == member.id) {
-                        level_data[user]["exp"] += amount;
-                        found = true;
-                    }
-                if (!found)
-                    level_data.push({"id": member.id, "exp": amount})
-                msg.channel.send(amount.toString() + " xp has been sucesfully added to " + member.displayName);
-                return;
-            
-            }
-            msg.channel.send("Member not found!");
-        } else {
-            msg.channel.send("Syntax incorrect!");
-        }
-        
-    },
-
-    /**
-     * @param {Message} msg
-     */
-    takexp: function(msg) {
-        let data = msg.content.split(" ");
-
-        if(typeof data != 'undefined' && data.length >= 3) {
-            let amount = Math.max(parseInt(data[1]), 0);
-            let name = data[2];
-            for(let i = 2; i < data.length - 1; i++)
-                name += " " + data[i];
-            
-            let found = false;
-            if (msg.mentions.members.array().length > 0) {
-                for (user in level_data) 
-                    if (level_data[user]["id"] == msg.mentions.members.first().id) {
-                        if(level_data[user]["exp"] >= amount)
-                            level_data[user]["exp"] -= amount;
-                        else
-                            level_data[user]["exp"] = 0;
-                        found = true;
-                    }
-                if (!found) {
-                    level_data.push({"id": msg.mentions.members.first().id, "exp": 0})
-                }
-                msg.channel.send(amount.toString() + " xp has been sucesfully taken from " + msg.mentions.members.first().displayName);
-                return;
-            }
-
-            let member = msg.guild.members.find("displayName", name);
-            if (member) {
-                for (user in level_data) 
-                    if (level_data[user]["id"] == member.id) {
-                        if(level_data[user]["exp"] >= amount)
-                            level_data[user]["exp"] -= amount;
-                        else
-                            level_data[user]["exp"] = 0;
-                        found = true;
-                    }
-                if (!found)
-                    level_data.push({"id": member.id, "exp": 0})
-                msg.channel.send(amount.toString() + " xp has been sucesfully taken from " + member.displayName);
-                return;
-            
-            }
-            msg.channel.send("Member not found!");
-        } else {
-            msg.channel.send("Syntax incorrect!");
-        }
-        
-    },
-
-    /**
-     * @param {Message} msg
-     */
-    setNotificationChannel: function(msg) {
-        notificationChannel = msg.channel.id;
-    },
-
-    /**
-     * @param {Message} msg
-     */
-    clearNotificationChannel: function(msg) {
-        notificationChannel = null;
     }
 }
