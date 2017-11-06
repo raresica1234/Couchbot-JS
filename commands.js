@@ -17,23 +17,25 @@ var MAX_MSG_LEN = 2000;
 function compileCommands(useDesc) {
     let help_msg = "Commands:";
     if(useDesc) {
-        Commands.forEach(function(cmd) {
+        for(i in Commands) {
+            let cmd = Commands[i];
             help_msg += "\n" + cmd.signature + " - " + cmd.description;
 
             // If message is too long, re-compile it without descriptions
             if(help_msg.length > MAX_MSG_LEN) {
                 return compileCommands(false);
             }
-        });
+        }
     }
     else {
-        Commands.forEach(function(cmd) {
+        for(i in Commands) {
+            let cmd = Commands[i];
             // If string becomes too long, add a '...' at the end and escape
             if((help_msg + "\n" + cmd.signature).length > (MAX_MSG_LEN - 4))
                 return help_msg + "\n...";
 
             help_msg += "\n" + cmd.signature;
-        });
+        }
     }
     return help_msg;
 }
