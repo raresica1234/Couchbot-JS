@@ -158,6 +158,10 @@ module.exports = {
         bot_id = id;
     },
 
+    save: function() {
+        save();
+    },
+
     /**
      * @param {Message} msg
      */

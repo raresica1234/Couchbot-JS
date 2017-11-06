@@ -28,6 +28,9 @@ if (process.platform === "win32") {
 
 process.on("SIGINT", function() {
     console.log("Disconnecting bot..")
+    level.save();
+    timezone.save();
+    behaviour.save();
     bot.destroy();
     process.exit();
 });

@@ -22,6 +22,10 @@ module.exports = {
         setInterval(save, SAVE_INTERVAL);
     },
 
+    save: function() {
+        save();
+    },
+
     /**
      * @param {Message} msg
      */
