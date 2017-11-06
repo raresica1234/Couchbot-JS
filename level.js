@@ -90,7 +90,7 @@ function get_data(author) {
         if (newlist[user]["id"] == author.id) {
             data.push((Math.floor(1 + (newlist[user]["exp"] / LEVEL_EXPERIENCE_NEEDED))).toString());
             let rank = Math.floor(parseInt(data[0]) / LEVEL_RANK_UP);
-            if (rank > LEVEL_RANKS.length)
+            if (rank >= LEVEL_RANKS.length)
                 rank = LEVEL_RANKS.length - 1;
             if (rank < 0)
                 rank = 0;
