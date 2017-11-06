@@ -57,6 +57,10 @@ bot.on("ready", () => {
 // Process bot message
 //
 bot.on('message', msg => {
+    // Don't process if the message is from a bot
+    if (msg.author.bot)
+        return;
+
     commands.process(msg);
 
     // Process experience
