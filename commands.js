@@ -41,6 +41,17 @@ function compileCommands(useDesc) {
 module.exports = {
 
     /**
+     * Load function
+    */
+    load: function() {
+        // Register behaviour commands
+        this.reg("!block", behaviour.output_block, 0, "blocks the output of the current channel");
+        this.reg("!unblock", behaviour.output_unblock, 0, "unblocks the output of the current channel");
+        this.reg("!blockxp", behaviour.xp_block, 0, "blocks the xp counting of the current channel");
+        this.reg("!unblockxp", behaviour.xp_unblock, 0, "unblocks the xp counting of the current channel");
+    },
+
+    /**
      * Help function
      * @param {Message} msg
      */

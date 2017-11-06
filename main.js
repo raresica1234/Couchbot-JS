@@ -46,6 +46,7 @@ bot.on("ready", () => {
     level.load(bot.user.id);
     behaviour.load();
     timezone.load();
+    commands.load();
 
     // Misc
     commands.reg("!help", commands.help, 2, "Lists all the available commands");
