@@ -12,6 +12,29 @@ const bot = new Discord.Client();
 var botConfig = JSON.parse(fs.readFileSync('config/config.json', 'utf-8'));
 var botToken = botConfig.bot_token;
 
+//
+// Disconnect the bot when the program is terminated
+//
+if (process.platform === "win32") {
+    var rl = require("readline").createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.on("SIGINT", function() {
+        process.emit("SIGINT");
+    });
+}
+
+process.on("SIGINT", function() {
+    console.log("Disconnecting bot..")
+    bot.destroy();
+    process.exit();
+});
+
+//
+// Load modules when bot is logged in
+//
 bot.on("ready", () => {
     console.log('Connected!');
     console.log("Bot name: " + bot.user.username);
@@ -22,8 +45,15 @@ bot.on("ready", () => {
     timezone.load();
 })
 
+
+//
+// Process bot message
+//
 bot.on('message', msg => {
     let content = msg.content.toLowerCase();
+
+    
+    
     if(content.startsWith("!block") && rights.isOwner(msg.author)){
         behaviour.output_block(msg);
     } else if(content.startsWith("!unblock") && rights.isOwner(msg.author)) {
@@ -60,5 +90,6 @@ bot.on('message', msg => {
         level.processMessage(msg);
     }
 });
-  
+
+// Log in bot client
 bot.login(botToken);
