@@ -58,11 +58,28 @@ module.exports = {
      * @param {Message} msg
      */
     help: function(msg) {
-        // Check if no commands are registered
-        if(Commands.length == 0)
-            return msg.channel.send("No commands registered.");
+        let argv = msg.content.split(" ");
+        if (argv.length > 1) {
+            let text = "";
+            argv.shift(); // Remove the command signature
+            for (i in argv) {
+                let arg = argv[i];
+                for (j in Commands) {
+                    let cmd = Commands[j];
+                    if (cmd.signature.replace('!', '') == arg.replace('!', '')) {
+                        text += "\n" + cmd.signature + " - " + cmd.description;
+                    }
+                }
+            }
+            msg.channel.send(text);
+        }
+        else {
+            // Check if no commands are registered
+            if(Commands.length == 0)
+                return msg.channel.send("No commands registered.");
 
-        msg.channel.send(compileCommands(true));
+            msg.channel.send(compileCommands(true));
+        }
     },
 
     /**
