@@ -46,4 +46,8 @@ module.exports = {
     isAdmin: function(user) {
         return hasRights(user) <= 1;
     },
+
+    hasRights: function(user) {
+        return hasRights(user);
+    }
 }
