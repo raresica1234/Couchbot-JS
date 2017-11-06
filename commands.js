@@ -115,7 +115,8 @@ module.exports = {
         content = msg.content.toLowerCase();
 
         // Iterate all commands in search of a matching signature
-        Commands.forEach(function(cmd) {
+        for (i in Commands) {
+            let cmd = Commands[i];
             if(content.startsWith(cmd.signature)) {
                 // Check if command has permissions, and in that case verify authority
                 let r = rights.hasRights(msg.author);
@@ -128,6 +129,6 @@ module.exports = {
 
                 return cmd.function(msg);
             }
-        });
+        }
     }
 }
