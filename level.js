@@ -147,8 +147,13 @@ function status(msg) {
     }
     
     if (msg.content.toLowerCase() == "!status" || msg.content.toLowerCase() == "!status "){
-        let values = get_data(msg.member);
-        print_status(msg.member, msg.channel, values);
+        // Workaround: 'msg.member' is occasionally null then user is invisible (appears offline)
+        let member = msg.guild.members.find("id", msg.author.id);
+        if (!member)
+            return;
+
+        let values = get_data(member);
+        print_status(member, msg.channel, values);
     } else {
         if (msg.mentions.members.array().length > 0) {
             let values = get_data(msg.mentions.members.first());
