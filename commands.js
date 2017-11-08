@@ -106,7 +106,7 @@ module.exports = {
         });
         return true;
     },
-
+    
     /**
      * Process message
      * @param {Message} msg

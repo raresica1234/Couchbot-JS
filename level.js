@@ -50,6 +50,26 @@ function tick() {
                 level_data.push({"id": user_data[user]["id"], "exp": randomXp()});
         }
     user_data = [];
+
+    for(user in level_data) {
+        let found = false;
+        for(user2 in last_ranks) {
+            if(level_data[user]["id"] != last_ranks[user2]["id"]) {
+                continue;
+            }
+
+            let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+            found = true;
+            if(last_ranks[user2]["rank"] != supposedRank) {
+                last_ranks[user2]["rank"] = supposedRank;
+                newRankNotification(user, msg.guild);
+                break;
+            }
+        }
+        if(!found) {
+            last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
+        }
+    }
 }
 
 function save() {
@@ -234,7 +254,10 @@ function top(msg) {
         for(let i =amount1 - 1; i < amount1 + amount2; i++) {
             if(i < newlist.length) {
                 let member = msg.guild.members.find("id", newlist[i]["id"]);
-                message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+                if(!member)
+                    message += (i + 1).toString() + ". " + "Not found" + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
+                else
+                    message += (i + 1).toString() + ". " + member.displayName + " - Level " + (Math.floor(newlist[i]["exp"] / LEVEL_EXPERIENCE_NEEDED) + 1).toString() +"\n"
             }
         }
 
@@ -423,26 +446,6 @@ module.exports = {
      * @param {Message} msg
      */
     processMessage: function(msg) {
-        for(user in level_data) {
-            let found = false;
-            for(user2 in last_ranks) {
-                if(level_data[user]["id"] != last_ranks[user2]["id"]) {
-                    continue;
-                }
-    
-                let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
-                found = true;
-                if(last_ranks[user2]["rank"] != supposedRank) {
-                    last_ranks[user2]["rank"] = supposedRank;
-                    newRankNotification(user, msg.guild);
-                    break;
-                }
-            }
-            if(!found) {
-                last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
-            }
-        }
-    
         if(msg.content.startsWith("!")) 
             return;
     

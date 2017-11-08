@@ -18,13 +18,13 @@ function save() {
  * @param {Message} msg
  */
 function set(msg) {
-    var words = msg.content.split(" ");
+    let words = msg.content.split(" ");
     if(words.length < 3) {
         msg.channel.send("Please specify timezone as (+/-)hour");
         return;
     }
-    var userID = msg.author.id;
-    var timezone = parseInt(words[2]);
+    let userID = msg.author.id;
+    let timezone = parseInt(words[2]);
     while(timezone >= 24) {
         timezone -= 24;
     }
@@ -42,12 +42,23 @@ function set(msg) {
 
 function get(msg) {
     var words = msg.content.split(" ");
+    if (msg.mentions.members.array().length > 0) {
+        let user = msg.mentions.members.array()[0];
+        let userID = user.id;
+        let timezone = userData[userID];
+        if(timezone >= 0) {
+            msg.channel.send("UTC+" + timezone);            
+        }else {
+            msg.channel.send("UTC" + timezone);
+        }
+        return;
+    }
     if(words.length < 3) {
         msg.channel.send("Please specify user");
         return;
     }
-    var username = words[2];
-    var user = msg.guild.members.find("displayName", username);
+    let username = words[2];
+    let user = msg.guild.members.find("displayName", username);
     if(!user) {
         user = msg.guild.members.find("nickname", username);
         if(!user) {
@@ -55,8 +66,8 @@ function get(msg) {
             return;
         }
     }
-    var userID = user.id;
-    var timezone = userData[userID];
+    let userID = user.id;
+    let timezone = userData[userID];
     if(timezone >= 0) {
         msg.channel.send("UTC+" + timezone);            
     }else {
@@ -65,13 +76,30 @@ function get(msg) {
 }
 
 function localtime(msg) {
-    var words = msg.content.split(" ");
+    let words = msg.content.split(" ");
+    if (msg.mentions.members.array().length > 0) {
+        let user = msg.mentions.members.array()[0];
+        let data = userData[user.id];
+        if(!data) {
+            msg.channel.send("That user did not set his timezone!");
+            return;
+        }
+
+        let date = new Date;
+        let hours = date.getUTCHours() + data;
+        while(hours >= 24) {
+            hours -= 24;
+        }
+        let minutes = date.getUTCMinutes();
+        msg.channel.send(user.displayName + "'s local time is " + hours + ":" + (minutes < 10 ? "0": "") + minutes);
+        return;
+    }
     if(words.length < 2) {
         msg.channel.send("Please specify user");
         return;
     }
-    var username = words[1];
-    var user = msg.guild.members.find("displayName", username);
+    let username = words[1];
+    let user = msg.guild.members.find("displayName", username);
     if(!user) {
         user = msg.guild.members.find("nickname", username);
         if(!user) {
@@ -79,17 +107,17 @@ function localtime(msg) {
             return;
         }
     }
-    var data = userData[user.id];
+    let data = userData[user.id];
     if(!data) {
         msg.channel.send("That user did not set his timezone!");
         return;
     }
-    var date = new Date;
-    var hours = date.getUTCHours() + data;
+    let date = new Date;
+    let hours = date.getUTCHours() + data;
     while(hours >= 24) {
         hours -= 24;
     }
-    var minutes = date.getUTCMinutes();
+    let minutes = date.getUTCMinutes();
     msg.channel.send(user.displayName + "'s local time is " + hours + ":" + (minutes < 10 ? "0": "") + minutes);
 }
 
