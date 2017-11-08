@@ -8,7 +8,7 @@ var FILE = "data/timezone.json"
 
 var userData = [];
 
-var SAVE_INTERVAL = 1000;
+var SAVE_INTERVAL = 60 * 60 * 1000;
 
 function saveTimezone() {
     let array = [];
@@ -63,6 +63,9 @@ function get(msg) {
         return;
     }
     var username = words[2];
+    for(let i = 3; i < words.length; i++){
+        username += " " + words[i];
+    }
     var user = msg.guild.members.find("displayName", username);
     if(!user) {
         user = msg.guild.members.find("nickname", username);
