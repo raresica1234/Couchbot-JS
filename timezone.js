@@ -4,27 +4,32 @@ const commands = require("./commands")
 
 var Message = discord.Message;
 
-var FILE = "config/timezone.json"
+var FILE = "data/timezone.json"
 
 var userData = [];
 
-var SAVE_INTERVAL = 60 * 60 * 1000;
+var SAVE_INTERVAL = 1000;
 
-function save() {
-    fs.writeFileSync(FILE, JSON.stringify(userData));
+function saveTimezone() {
+    let array = [];
+    for(data in userData) {
+        array.push({"id": data, "timezone": userData[data]});
+    }
+    fs.writeFileSync(FILE, JSON.stringify(array));
+    console.log(array);
 }
 
  /**
  * @param {Message} msg
  */
 function set(msg) {
-    let words = msg.content.split(" ");
+    var words = msg.content.split(" ");
     if(words.length < 3) {
         msg.channel.send("Please specify timezone as (+/-)hour");
         return;
     }
-    let userID = msg.author.id;
-    let timezone = parseInt(words[2]);
+    var userID = msg.author.id;
+    var timezone = parseInt(words[2]);
     while(timezone >= 24) {
         timezone -= 24;
     }
@@ -43,9 +48,9 @@ function set(msg) {
 function get(msg) {
     var words = msg.content.split(" ");
     if (msg.mentions.members.array().length > 0) {
-        let user = msg.mentions.members.array()[0];
-        let userID = user.id;
-        let timezone = userData[userID];
+        var user = msg.mentions.members.array()[0];
+        var userID = user.id;
+        var timezone = userData[userID];
         if(timezone >= 0) {
             msg.channel.send("UTC+" + timezone);            
         }else {
@@ -57,8 +62,8 @@ function get(msg) {
         msg.channel.send("Please specify user");
         return;
     }
-    let username = words[2];
-    let user = msg.guild.members.find("displayName", username);
+    var username = words[2];
+    var user = msg.guild.members.find("displayName", username);
     if(!user) {
         user = msg.guild.members.find("nickname", username);
         if(!user) {
@@ -66,8 +71,8 @@ function get(msg) {
             return;
         }
     }
-    let userID = user.id;
-    let timezone = userData[userID];
+    var userID = user.id;
+    var timezone = userData[userID];
     if(timezone >= 0) {
         msg.channel.send("UTC+" + timezone);            
     }else {
@@ -76,21 +81,21 @@ function get(msg) {
 }
 
 function localtime(msg) {
-    let words = msg.content.split(" ");
+    var words = msg.content.split(" ");
     if (msg.mentions.members.array().length > 0) {
-        let user = msg.mentions.members.array()[0];
-        let data = userData[user.id];
+        var user = msg.mentions.members.array()[0];
+        var data = userData[user.id];
         if(!data) {
             msg.channel.send("That user did not set his timezone!");
             return;
         }
 
-        let date = new Date;
-        let hours = date.getUTCHours() + data;
+        var date = new Date;
+        var hours = date.getUTCHours() + data;
         while(hours >= 24) {
             hours -= 24;
         }
-        let minutes = date.getUTCMinutes();
+        var minutes = date.getUTCMinutes();
         msg.channel.send(user.displayName + "'s local time is " + hours + ":" + (minutes < 10 ? "0": "") + minutes);
         return;
     }
@@ -98,8 +103,8 @@ function localtime(msg) {
         msg.channel.send("Please specify user");
         return;
     }
-    let username = words[1];
-    let user = msg.guild.members.find("displayName", username);
+    var username = words[1];
+    var user = msg.guild.members.find("displayName", username);
     if(!user) {
         user = msg.guild.members.find("nickname", username);
         if(!user) {
@@ -107,17 +112,17 @@ function localtime(msg) {
             return;
         }
     }
-    let data = userData[user.id];
+    var data = userData[user.id];
     if(!data) {
         msg.channel.send("That user did not set his timezone!");
         return;
     }
-    let date = new Date;
-    let hours = date.getUTCHours() + data;
+    var date = new Date;
+    var hours = date.getUTCHours() + data;
     while(hours >= 24) {
         hours -= 24;
     }
-    let minutes = date.getUTCMinutes();
+    var minutes = date.getUTCMinutes();
     msg.channel.send(user.displayName + "'s local time is " + hours + ":" + (minutes < 10 ? "0": "") + minutes);
 }
 
@@ -130,12 +135,17 @@ module.exports = {
         commands.reg("!localtime", localtime, 2, "gets the current time of day for the specified user");
 
         if(fs.existsSync(FILE)) {
-            userData = JSON.parse(fs.readFileSync(FILE));
+            let array = JSON.parse(fs.readFileSync(FILE));
+            for(let arrayElement in array) {
+                let user = array[arrayElement]["id"];
+                let timezone = array[arrayElement]["timezone"];
+                userData[user] = timezone;
+            }
         }
-        setInterval(save, SAVE_INTERVAL);
+        setInterval(saveTimezone, SAVE_INTERVAL);
     },
 
     save: function() {
-        save();
+        saveTimezone();
     }
 }
