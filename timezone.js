@@ -104,6 +104,9 @@ function localtime(msg) {
         return;
     }
     var username = words[1];
+    for(let i = 2; i < words.length; i++){
+        username += " " + words[i];
+    }
     var user = msg.guild.members.find("displayName", username);
     if(!user) {
         user = msg.guild.members.find("nickname", username);
