@@ -16,7 +16,6 @@ function saveTimezone() {
         array.push({"id": data, "timezone": userData[data]});
     }
     fs.writeFileSync(FILE, JSON.stringify(array));
-    console.log(array);
 }
 
  /**

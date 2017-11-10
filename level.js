@@ -27,6 +27,8 @@ var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
 
 var LEVEL_RANK_UP = 10;
 
+var guild;
+
 function randomColor() {
     return Math.floor(Math.random() * 16777215);
 }
@@ -62,7 +64,7 @@ function tick() {
             found = true;
             if(last_ranks[user2]["rank"] != supposedRank) {
                 last_ranks[user2]["rank"] = supposedRank;
-                newRankNotification(user, msg.guild);
+                newRankNotification(user, guild);
                 break;
             }
         }
@@ -399,6 +401,7 @@ function takexp(msg) {
  */
 function setNotificationChannel(msg) {
     notificationChannel = msg.channel.id;
+    msg.channel.send("Notification channel set!");
 }
 
 /**
@@ -406,6 +409,7 @@ function setNotificationChannel(msg) {
  */
 function clearNotificationChannel(msg) {
     notificationChannel = null;
+    msg.channel.send("Notification channel cleared!");
 }
 
 module.exports = {
@@ -456,5 +460,7 @@ module.exports = {
             }
         }
         user_data.push({"id": msg.author.id, "nof": 1});
+        if(guild == null)
+            guild = msg.guild
     }
 }
