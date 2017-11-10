@@ -17,7 +17,7 @@ var FILE_PATH = "data/level_data.json";
 var NOTIFICATION_PATH = "data/notification.json";
 
 var LEVEL_MAX = 100;
-var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "No-lifer"];
+var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "Blight", "No-lifer"];
 var LEVEL_EXPERIENCE_NEEDED = 350;
 var LEVEL_RANDOM_VALUE_MIN = 15;
 var LEVEL_RANDOM_VALUE_MAX = 40;
