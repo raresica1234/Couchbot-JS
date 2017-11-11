@@ -1,10 +1,10 @@
-const Discord = require("discord.js")
-const fs = require("fs")
+const Discord = require("discord.js");
+const fs = require("fs");
 
-const rights = require("./utils/rights")
-const behaviour = require("./utils/behaviour")
-const commands = require("./commands")
-const timezone = require("./timezone")
+const rights = require("./utils/rights");
+const behaviour = require("./utils/behaviour");
+const commands = require("./commands");
+const timezone = require("./timezone");
 const level = require("./level");
 
 const bot = new Discord.Client();
