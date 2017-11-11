@@ -104,6 +104,7 @@ module.exports = {
             permissions: perms,
             description: desc
         });
+        console.log("Registered command '%s'", sig);
         return true;
     },
     
