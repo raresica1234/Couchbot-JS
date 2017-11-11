@@ -6,6 +6,7 @@ const behaviour = require("./utils/behaviour");
 const commands = require("./commands");
 const timezone = require("./timezone");
 const level = require("./level");
+const games = require("./games");
 
 const bot = new Discord.Client();
 
@@ -47,6 +48,7 @@ bot.on("ready", () => {
     behaviour.load();
     timezone.load();
     commands.load();
+    games.load();
 
     // Misc
     commands.reg("!help", commands.help, 2, "Lists all the available commands");
