@@ -94,8 +94,8 @@ module.exports = {
         // Check types
         Commands.forEach(function(cmd) {
             if(cmd.signature == sig) {
-                return false;
                 console.error("Command with signature '" + sig + "' already exists");
+                return false;
             }
         });
         Commands.push({
