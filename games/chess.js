@@ -1,4 +1,6 @@
 const DISCORD = require('discord.js');
+const FS = require('fs');
+const IMGUR_UPLOADER = require('imgur-uploader');
 
 var chess_games_ = [];
 
