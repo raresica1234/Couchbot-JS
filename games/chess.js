@@ -118,7 +118,7 @@ function end(args, member, channel)
 		}
 
 		// Cancel game
-		return chess_games_.splice(i);
+		return chess_games_.splice(i, 1);
 	}
 
 	// No ongoing game including specified member
