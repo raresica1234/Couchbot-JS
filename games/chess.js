@@ -21,7 +21,7 @@ class ChessGame
 		this.embed.setFooter("Footer");
 		this.embed.setImage("");
 		this.embed.setThumbnail(playerOne.user.avatarURL);
-		this.embed.setTitle("Title");
+		this.embed.setTitle("Chess Match");
 
 		// Send and store message
 		channel.send(this.embed).then(msg =>
