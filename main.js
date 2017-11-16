@@ -43,7 +43,7 @@ bot.on("ready", () => {
     console.log("Bot name: " + bot.user.username);
     console.log("Bot id: " + bot.user.id);
     rights.load();
-    level.load(bot.user.id);
+    level.load(bot.user.id, bot.guilds.first());
     behaviour.load();
     timezone.load();
     commands.load();

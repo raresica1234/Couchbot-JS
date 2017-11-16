@@ -12,11 +12,11 @@ var user_data = [];
 var level_data = [];
 var last_ranks = [];
 var notificationChannel = null;
-// level_data: {"Name"="<name>", "LevelPoints" = <points>}
+
 var FILE_PATH = "data/level_data.json";
 var NOTIFICATION_PATH = "data/notification.json";
+var BACKUP_PATH = "data/level_data_backup.json";
 
-var LEVEL_MAX = 100;
 var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "Blight", "No-lifer"];
 var LEVEL_EXPERIENCE_NEEDED = 350;
 var LEVEL_RANDOM_VALUE_MIN = 15;
@@ -75,7 +75,21 @@ function tick() {
 }
 
 function save() {
+    if(typeof(guild) != 'undefined') {
+        let backup_users = new Array();
+        if(fs.existsSync(BACKUP_PATH)) {
+            backup_users = JSON.parse(fs.readFileSync(BACKUP_PATH));
+        }
+        for(let user = level_data.length - 1; user >= 0; user--) {
+            if(guild.members.find("id", level_data[user]["id"]) == null) {
+                backup_users.push(level_data[user]);
+                level_data.splice(user, 1);
+            }
+        }
+        fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_users));
+    }
     fs.writeFileSync(FILE_PATH, JSON.stringify(level_data));
+    
     fs.writeFileSync(NOTIFICATION_PATH, JSON.stringify(notificationChannel));
 }
 
@@ -231,6 +245,10 @@ function status(msg) {
  * @param {Message} msg
  */
 function top(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
     let data = msg.content.split(" ");
 
     if(data.length < 2) {
@@ -304,12 +322,16 @@ function top(msg) {
  * @param {Message} msg
  */
 function givexp(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
     let data = msg.content.split(" ");
 
     if(typeof data != 'undefined' && data.length >= 3) {
         let amount = Math.max(parseInt(data[1]), 0);
         let name = data[2];
-        for(let i = 2; i < data.length - 1; i++)
+        for(let i = 3; i <= data.length - 1; i++)
             name += " " + data[i];
         
         let found = false;
@@ -349,12 +371,16 @@ function givexp(msg) {
  * @param {Message} msg
  */
 function takexp(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
     let data = msg.content.split(" ");
 
     if(typeof data != 'undefined' && data.length >= 3) {
         let amount = Math.max(parseInt(data[1]), 0);
         let name = data[2];
-        for(let i = 2; i < data.length - 1; i++)
+        for(let i = 3; i <= data.length - 1; i++)
             name += " " + data[i];
         
         let found = false;
@@ -400,6 +426,10 @@ function takexp(msg) {
  * @param {Message} msg
  */
 function setNotificationChannel(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
     notificationChannel = msg.channel.id;
     msg.channel.send("Notification channel set!");
 }
@@ -408,13 +438,69 @@ function setNotificationChannel(msg) {
  * @param {Message} msg
  */
 function clearNotificationChannel(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
     notificationChannel = null;
     msg.channel.send("Notification channel cleared!");
 }
 
+function restore(msg) {
+    if (!msg.guild) {
+        msg.channel.send("You can't do that here, you must send the message from a server.");
+        return;
+    }
+
+
+    let data = msg.content.split(" ");
+    if(typeof data != 'undefined' && data.length >= 2) {
+        if (msg.mentions.members.array().length > 0) {
+            let member = msg.mentions.members.first();
+            if(fs.existsSync(BACKUP_PATH)){
+                let backup_data = JSON.parse(fs.readFileSync(BACKUP_PATH));
+                
+                for(let user in backup_data) {
+                    if(backup_data[user]["id"] == member.user.id){
+                        level_data.push(backup_data[user]);
+                        backup_data.splice(user, 1);
+                        fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_data));
+                        msg.channel.send("User restored succesfully.");
+                        return;
+                    }
+                }
+                msg.channel.send("User not found in the backup file.");
+            }
+        }
+        let name = data[1];
+        for(let i = 2; i <= data.length - 1; i++)
+            name += " " + data[i];
+        console.log(name);
+        let member = msg.guild.members.find("displayName", name);
+        if(member) {
+            if(fs.existsSync(BACKUP_PATH)){
+                let backup_data = JSON.parse(fs.readFileSync(BACKUP_PATH));
+                
+                for(let user in backup_data) {
+                    if(backup_data[user]["id"] == member.user.id){
+                        level_data.push(backup_data[user]);
+                        backup_data.splice(user, 1);
+                        fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_data));
+                        msg.channel.send("User restored succesfully.");
+                        return;
+                    }
+                }
+                msg.channel.send("User not found in the backup file.");
+            }
+        } else {
+            msg.channel.send("Member not found");
+        }
+    }
+}
+
 module.exports = {
 
-    load: function(id) {
+    load: function(id, bot_guild) {
         // Register commands
         commands.reg("!status", status, 2, "displays the status of the user");
         commands.reg("!top", top, 2, "displays the top users");
@@ -422,6 +508,7 @@ module.exports = {
         commands.reg("!takexp", takexp, 0, "takes the specified amount of xp from the user");
         commands.reg("!setnotification", setNotificationChannel, 0, "blocks the output of the current channel");
         commands.reg("!clearnotification", clearNotificationChannel, 0, "clears the channel in which notifications take place");
+        commands.reg("!restore", restore, 0, "restores a user which has lost his level");
 
         if(fs.existsSync(FILE_PATH)) {
             level_data = JSON.parse(fs.readFileSync(FILE_PATH));
@@ -429,8 +516,6 @@ module.exports = {
                 let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
                 last_ranks.push({"id": level_data[user]["id"], "rank": rank});
             }
-            console.log(level_data);
-            console.log(last_ranks);
         }
 
         if(fs.existsSync(NOTIFICATION_PATH)) {
@@ -440,6 +525,7 @@ module.exports = {
         setInterval(tick, LEVEL_TIMER); // because milliseconds
         setInterval(save, SAVE_INTERVAL);
         bot_id = id;
+        guild = bot_guild;
     },
 
     save: function() {
@@ -460,7 +546,5 @@ module.exports = {
             }
         }
         user_data.push({"id": msg.author.id, "nof": 1});
-        if(guild == null)
-            guild = msg.guild
     }
 }
