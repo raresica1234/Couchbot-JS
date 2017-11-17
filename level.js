@@ -1,6 +1,7 @@
 const discord = require("discord.js");
 const fs = require("fs")
 const commands = require("./commands")
+const timezone = require("./timezone")
 
 var Message = discord.Message;
 var TextChannel = discord.TextChannel;
@@ -104,7 +105,7 @@ function print_status(author, channel, values) {
         name = author.nickname;
 
     let embed = new discord.RichEmbed();
-    let message = "Level: " + values[0] + "\nExp: " + values[2] + "/" + LEVEL_EXPERIENCE_NEEDED.toString() +"\nRank: " + values[3];
+    let message = "Level: " + values[0] + "\nExp: " + values[2] + "/" + LEVEL_EXPERIENCE_NEEDED.toString() +"\nRank: " + values[3]+ "\nLocal Time: " + values[4];
     embed.setAuthor(name, author.user.displayAvatarURL);
     embed.setDescription(message);
     embed.setTitle(values[1]);
@@ -121,6 +122,20 @@ function get_data(author) {
         return b["exp"] - a["exp"];
     })
     
+    let time_data = timezone.getData(author.id);
+    let time;
+    if(!time_data) {
+        time = "Not set";
+    } else {
+        let date = new Date;
+        let hours = date.getUTCHours() + time_data;
+        while(hours >= 24) {
+            hours -= 24;
+        }
+        let minutes = date.getUTCMinutes();
+        time =  hours + ":" + (minutes < 10 ? "0": "") + minutes;
+    }
+
     let data = [], place = 1;
     for (user in newlist) {
         if (newlist[user]["id"] == author.id) {
@@ -134,6 +149,7 @@ function get_data(author) {
             data.push(LEVEL_RANKS[rank]);
             data.push((newlist[user]["exp"] - (parseInt(data[0]) - 1) * LEVEL_EXPERIENCE_NEEDED).toString());
             data.push(place.toString());
+            data.push(time);
             return data;
         }
         place++;
@@ -142,6 +158,7 @@ function get_data(author) {
     data.push(LEVEL_RANKS[0]);
     data.push("0");
     data.push("N/A");
+    data.push(time);    
     return data;
 }
 

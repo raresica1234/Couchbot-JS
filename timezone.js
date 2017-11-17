@@ -133,6 +133,10 @@ function localtime(msg) {
 
 module.exports = {
 
+    getData: function(id) {
+        return userData[id];
+    },
+
     load: function() {
         // Register commands
         commands.reg("!timezone set", set, 2, "sets your timezone location (UTC)");
