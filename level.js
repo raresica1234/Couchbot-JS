@@ -168,7 +168,9 @@ function newRankNotification(user, guild) {
     if(!notificationChannel || typeof notificationChannel == 'undefined')
         author.send(embed);
     else {
-        guild.channels.find("id", notificationChannel).send(embed);
+        let channel = guild.channels.find("id", notificationChannel);
+        channel.send(embed);
+        channel.send("Congratulations " + author + " !");
     }   
         
 }
