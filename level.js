@@ -193,7 +193,9 @@ function get_data(author) {
  */
 function newRankNotification(user, guild) {
     let author = guild.members.find("id", level_data[user]["id"]);
-    if (author == null && author.id == bot_id && notificationChannel == null) 
+    if (author == null ) 
+        return;
+    if (author.id == bot_id && notificationChannel == null) 
         return;
     let name = author.user.username;
     if (typeof author.nickname != 'undefined' && author.nickname != null)
