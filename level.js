@@ -20,11 +20,11 @@ var BACKUP_PATH = "data/level_data_backup.json";
 
 var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "Blight", "No-lifer"];
 var LEVEL_EXPERIENCE_NEEDED = 350;
-var LEVEL_RANDOM_VALUE_MIN = 15;
-var LEVEL_RANDOM_VALUE_MAX = 40;
-var LEVEL_TIMER = 300 * 1000; // 5 minutes
+var LEVEL_RANDOM_VALUE_MIN = 150;
+var LEVEL_RANDOM_VALUE_MAX = 400;
+var LEVEL_TIMER = 1000; // 5 minutes
 
-var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
+var SAVE_INTERVAL = 1000; // an hour
 
 var LEVEL_RANK_UP = 10;
 
@@ -73,10 +73,11 @@ function tick() {
             last_ranks.push({"id": level_data[user]["id"], "rank": LEVEL_RANKS[0]});
         }
     }
+    save();
 }
 
 function save() {
-    if(typeof(guild) != 'undefined') {
+    if(typeof(guild) != 'undefined' && guild != null) {
         let backup_users = new Array();
         if(fs.existsSync(BACKUP_PATH)) {
             backup_users = JSON.parse(fs.readFileSync(BACKUP_PATH));
@@ -168,7 +169,7 @@ function get_data(author) {
  */
 function newRankNotification(user, guild) {
     let author = guild.members.find("id", level_data[user]["id"]);
-    if (author.id == bot_id && notificationChannel == null) 
+    if (author != null && author.id == bot_id && notificationChannel == null) 
         return;
     let name = author.user.username;
     if (typeof author.nickname != 'undefined' && author.nickname != null)
