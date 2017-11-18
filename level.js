@@ -20,11 +20,11 @@ var BACKUP_PATH = "data/level_data_backup.json";
 
 var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colonel", "Commandant", "Captain", "Master", "God", "God+", "Quasigod", "Blight", "No-lifer"];
 var LEVEL_EXPERIENCE_NEEDED = 350;
-var LEVEL_RANDOM_VALUE_MIN = 150;
-var LEVEL_RANDOM_VALUE_MAX = 400;
-var LEVEL_TIMER = 1000; // 5 minutes
+var LEVEL_RANDOM_VALUE_MIN = 15;
+var LEVEL_RANDOM_VALUE_MAX = 40;
+var LEVEL_TIMER = 300 * 1000; // 5 minutes
 
-var SAVE_INTERVAL = 1000; // an hour
+var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
 
 var LEVEL_RANK_UP = 10;
 
@@ -88,6 +88,13 @@ function save() {
                 level_data.splice(user, 1);
             }
         }
+        for(let user = backup_users.length - 1; user >= 0; user--) {
+            if(guild.members.find("id", backup_users[user]["id"]) != null) {
+                level_data.push(backup_users[user]);
+                backup_users.splice(user, 1);
+            }
+        }
+
         fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_users));
     }
     fs.writeFileSync(FILE_PATH, JSON.stringify(level_data));
