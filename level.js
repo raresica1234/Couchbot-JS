@@ -22,9 +22,9 @@ var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colone
 var LEVEL_EXPERIENCE_NEEDED = 350;
 var LEVEL_RANDOM_VALUE_MIN = 15;
 var LEVEL_RANDOM_VALUE_MAX = 40;
-var LEVEL_TIMER = 300 * 1000; // 5 minutes
+var LEVEL_TIMER = 1000; // 5 minutes
 
-var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
+var SAVE_INTERVAL = 1000; // an hour
 
 var LEVEL_RANK_UP = 10;
 
@@ -84,13 +84,30 @@ function save() {
         }
         for(let user = level_data.length - 1; user >= 0; user--) {
             if(guild.members.find("id", level_data[user]["id"]) == null) {
-                backup_users.push(level_data[user]);
+                //test if user exists in the level_data
+                let found = false;
+                for(user2 in backup_users) {
+                    if(backup_users[user2]["id"] == level_data[user]["id"]){
+                        backup_users[user2] = level_data[user];
+                        found = true;
+                    }
+                }
+                if(!found)
+                    backup_users.push(level_data[user]);
                 level_data.splice(user, 1);
             }
         }
         for(let user = backup_users.length - 1; user >= 0; user--) {
             if(guild.members.find("id", backup_users[user]["id"]) != null) {
-                level_data.push(backup_users[user]);
+                let found = false;
+                for(user2 in level_data) {
+                    if(backup_users[user]["id"] == level_data[user2]["id"]){
+                        level_data[user2] = backup_users[user];
+                        found = true;
+                    }
+                }
+                if(!found)
+                    level_data.push(backup_users[user]);
                 backup_users.splice(user, 1);
             }
         }
@@ -479,7 +496,6 @@ function restore(msg) {
         return;
     }
 
-
     let data = msg.content.split(" ");
     if(typeof data != 'undefined' && data.length >= 2) {
         if (msg.mentions.members.array().length > 0) {
@@ -489,7 +505,15 @@ function restore(msg) {
                 
                 for(let user in backup_data) {
                     if(backup_data[user]["id"] == member.user.id){
-                        level_data.push(backup_data[user]);
+                        let found = false;
+                        for(let user2 in level_data) {
+                            if(backup_data[user]["id"] == level_data[user2]["id"]) {
+                                level_data[user2] = backup_data[user];
+                                found = true;
+                            }
+                        }
+                        if(!found)
+                            level_data.push(backup_data[user]);
                         backup_data.splice(user, 1);
                         fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_data));
                         msg.channel.send("User restored succesfully.");
@@ -510,7 +534,15 @@ function restore(msg) {
                 
                 for(let user in backup_data) {
                     if(backup_data[user]["id"] == member.user.id){
-                        level_data.push(backup_data[user]);
+                        let found = false;
+                        for(let user2 in level_data) {
+                            if(backup_data[user]["id"] == level_data[user2]["id"]) {
+                                level_data[user2] = backup_data[user];
+                                found = true;
+                            }
+                        }
+                        if(!found)
+                            level_data.push(backup_data[user]);
                         backup_data.splice(user, 1);
                         fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_data));
                         msg.channel.send("User restored succesfully.");
@@ -542,6 +574,14 @@ module.exports = {
             for(let user in level_data) {
                 let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
                 last_ranks.push({"id": level_data[user]["id"], "rank": rank});
+            }
+        }
+
+        if(fs.existsSync(BACKUP_PATH)) {
+            let backup_data = JSON.parse(fs.readFileSync(BACKUP_PATH));
+            for(let user in backup_data) {
+                let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(backup_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+                last_ranks.push({"id": backup_data[user]["id"], "rank": rank});
             }
         }
 

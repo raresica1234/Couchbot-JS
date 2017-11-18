@@ -12,6 +12,8 @@ const bot = new Discord.Client();
 var botConfig = JSON.parse(fs.readFileSync('config/config.json', 'utf-8'));
 var botToken = botConfig.bot_token;
 
+var onReady = false;
+
 //
 // Disconnect the bot when the program is terminated
 //
@@ -39,6 +41,11 @@ process.on("SIGINT", function() {
 // Load modules when bot is logged in
 //
 bot.on("ready", () => {
+    if(onReady){
+        console.log("Reconnected!");
+        return;
+    }
+
     console.log('Connected!');
     console.log("Bot name: " + bot.user.username);
     console.log("Bot id: " + bot.user.id);
@@ -50,6 +57,7 @@ bot.on("ready", () => {
 
     // Misc
     commands.reg("!help", commands.help, 2, "Lists all the available commands");
+    onReady = true;
 })
 
 
