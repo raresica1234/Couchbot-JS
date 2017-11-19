@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "^11.2.1",
-    "imgur-uploader": "^4.2.1"
+    "imgur-uploader": "^4.2.1",
+    "jimp": "^0.2.28"
   },
   "devDependencies": {
     "@types/node": "^8.0.34"
