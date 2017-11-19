@@ -1,6 +1,7 @@
 const DISCORD = require('discord.js');
 const FS = require('fs');
 const IMGUR_UPLOADER = require('imgur-uploader');
+const JIMP = require('jimp');
 
 var chess_games_ = [];
 
@@ -13,6 +14,65 @@ class ChessGame
 		this.playerTwo = playerTwo;
 		this.channel = channel;
 		this.turn = 0;
+		this.board = [];
+
+		// Chess board image
+		JIMP.read("res/chessboard.png").then(image =>
+		{
+			this.chessboard = image;
+		});
+
+		// White pieces
+		JIMP.read("res/chesspiece_bishop_white.png").then(image =>
+		{
+			this.piece_bishop_white = image;
+		});
+		JIMP.read("res/chesspiece_king_white.png", function(err, image)
+		{
+			this.piece_king_white = image;
+		});
+		JIMP.read("res/chesspiece_knight_white.png", function(err, image)
+		{
+			this.piece_knight_white = image;
+		});
+		JIMP.read("res/chesspiece_pawn_white.png", function(err, image)
+		{
+			this.piece_pawn_white = image;
+		});
+		JIMP.read("res/chesspiece_queen_white.png", function(err, image)
+		{
+			this.piece_queen_white = image;
+		});
+		JIMP.read("res/chesspiece_tower_white.png", function(err, image)
+		{
+			this.piece_tower_white = image;
+		});
+
+		// Black pieces
+		JIMP.read("res/chesspiece_bishop_black.png", function(err, image)
+		{
+			this.piece_bishop_black = image;
+		});
+		JIMP.read("res/chesspiece_king_black.png", function(err, image)
+		{
+			this.piece_king_black = image;
+		});
+		JIMP.read("res/chesspiece_knight_black.png", function(err, image)
+		{
+			this.piece_knight_black = image;
+		});
+		JIMP.read("res/chesspiece_pawn_black.png", function(err, image)
+		{
+			this.piece_pawn_black = image;
+		});
+		JIMP.read("res/chesspiece_queen_black.png", function(err, image)
+		{
+			this.piece_queen_black = image;
+		});
+		JIMP.read("res/chesspiece_tower_black.png", function(err, image)
+		{
+			this.piece_tower_black = image;
+		});
 
 		// Create embedded message
 		this.embed = new DISCORD.RichEmbed();
@@ -29,7 +89,7 @@ class ChessGame
 			this.msg = msg;
 		});
 
-		IMGUR_UPLOADER(FS.readFileSync("res/chessboard.jpg"), {title: "Chessboard"}).then(data =>
+		IMGUR_UPLOADER(FS.readFileSync("res/chessboard.png"), {title: "Chessboard"}).then(data =>
 		{
 			if (data)
 			{
@@ -46,15 +106,40 @@ class ChessGame
 		});
 	}
 
+	currentPlayer()
+	{
+		if ((this.turn % 2) == 0)
+			return this.playerOne;
+		else
+			return this.playerTwo;
+	}
+
 	nextTurn()
 	{
-		this.turn = (this.turn + 1) % 2;
-		if (this.msg)
+		this.turn++;
+
+		if (!this.msg)
+			return;
+
+		let player = this.currentPlayer();
+		this.embed.setThumbnail(player.user.avatarURL);
+
+		if (!this.chessboard || !this.piece_bishop_white)
+			return;
+
+		let chessboard_clone = this.chessboard.clone();
+		chessboard_clone.mask(this.piece_bishop_white, 1 + this.turn * 31, 1);
+		chessboard_clone.getBuffer(JIMP.MIME_PNG, (err, buf) =>
 		{
-			let player = (this.turn == 0) ? this.playerOne : this.playerTwo;
-			this.embed.setThumbnail(player.user.avatarURL);
-			this.msg.edit(this.embed);
-		}
+			IMGUR_UPLOADER(buf, {title: "Chessboard"}).then(data =>
+			{
+				if (data)
+				{
+					this.embed.setImage(data.link);
+					this.msg.edit(this.embed);
+				}
+			});
+		});
 	}
 }
 
@@ -90,7 +175,7 @@ function start(args, member, channel)
 
 	// Make sure member isn't part of a game already
 	if (gameIndexFromMember(member) != -1)
-		return channel.send(member + " is already in a game!");
+		return channel.send(member.displayName + " is already in a game!");
 
 	let chess_game = new ChessGame(member, opponent, channel);
 	chess_games_.push(chess_game);
@@ -122,7 +207,7 @@ function end(args, member, channel)
 	}
 
 	// No ongoing game including specified member
-	channel.send(member + " is not in any game right now");	
+	channel.send(member.displayName + " is not in any game right now");	
 }
 
 /* Next turn */
@@ -130,7 +215,7 @@ function nextTurn(args, member, channel)
 {
 	let i = gameIndexFromMember(member);
 	if (i == -1)
-		return channel.send(member + " is not in any game right now");
+		return channel.send(member.displayName + " is not in any game right now");
 
 	let chess_game = chess_games_[i];
 	chess_game.nextTurn();
