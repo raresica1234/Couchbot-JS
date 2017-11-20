@@ -22,9 +22,9 @@ var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colone
 var LEVEL_EXPERIENCE_NEEDED = 350;
 var LEVEL_RANDOM_VALUE_MIN = 15;
 var LEVEL_RANDOM_VALUE_MAX = 40;
-var LEVEL_TIMER = 300 * 1000; // 5 minutes
+var LEVEL_TIMER = 1000; // 5 minutes
 
-var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
+var SAVE_INTERVAL = 1000; // an hour
 
 var LEVEL_RANK_UP = 10;
 
@@ -61,7 +61,7 @@ function tick() {
                 continue;
             }
 
-            let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+            let supposedRank = LEVEL_RANKS[parseInt(Math.max(Math.min((level_data[user]["exp"] + LEVEL_EXPERIENCE_NEEDED)/ (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
             found = true;
             if(last_ranks[user2]["rank"] != supposedRank) {
                 last_ranks[user2]["rank"] = supposedRank;
@@ -201,7 +201,7 @@ function newRankNotification(user, guild) {
     if (typeof author.nickname != 'undefined' && author.nickname != null)
         name = author.nickname;
 
-    let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+    let rank = LEVEL_RANKS[parseInt(Math.max(Math.min((level_data[user]["exp"] + LEVEL_EXPERIENCE_NEEDED) / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
     let embed = new discord.RichEmbed();
     let message = "You reached a new rank!\nYour new rank is " + rank;
     embed.setAuthor(name, author.user.displayAvatarURL);
@@ -574,7 +574,7 @@ module.exports = {
         if(fs.existsSync(FILE_PATH)) {
             level_data = JSON.parse(fs.readFileSync(FILE_PATH));
             for(let user in level_data) {
-                let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(level_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+                let rank = LEVEL_RANKS[parseInt(Math.max(Math.min((level_data[user]["exp"] + LEVEL_EXPERIENCE_NEEDED)/ (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
                 last_ranks.push({"id": level_data[user]["id"], "rank": rank});
             }
         }
@@ -582,7 +582,7 @@ module.exports = {
         if(fs.existsSync(BACKUP_PATH)) {
             let backup_data = JSON.parse(fs.readFileSync(BACKUP_PATH));
             for(let user in backup_data) {
-                let rank = LEVEL_RANKS[parseInt(Math.max(Math.min(backup_data[user]["exp"] / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
+                let rank = LEVEL_RANKS[parseInt(Math.max(Math.min((backup_data[user]["exp"] + LEVEL_EXPERIENCE_NEEDED) / (10 * LEVEL_EXPERIENCE_NEEDED), LEVEL_RANKS.length - 1), 0))];
                 last_ranks.push({"id": backup_data[user]["id"], "rank": rank});
             }
         }
