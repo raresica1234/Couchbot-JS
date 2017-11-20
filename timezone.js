@@ -29,8 +29,8 @@ function set(msg) {
     }
     var userID = msg.author.id;
     var timezone = parseInt(words[2]);
-    while(timezone >= 24) {
-        timezone -= 24;
+    if(timezone >=24 || timezone <= -24) {
+        msg.channel.send("Timezone is not correct.");
     }
     if(isNaN(timezone)) {
         msg.channel.send("Timezone has to be a number.");
