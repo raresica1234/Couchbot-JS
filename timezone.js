@@ -31,6 +31,7 @@ function set(msg) {
     var timezone = parseInt(words[2]);
     if(timezone >=24 || timezone <= -24) {
         msg.channel.send("Timezone is not correct.");
+        return;
     }
     if(isNaN(timezone)) {
         msg.channel.send("Timezone has to be a number.");
