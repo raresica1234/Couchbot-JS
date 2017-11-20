@@ -22,9 +22,9 @@ var LEVEL_RANKS = ["Newbie", "Rookie", "General", "Lieutenant", "Major", "Colone
 var LEVEL_EXPERIENCE_NEEDED = 350;
 var LEVEL_RANDOM_VALUE_MIN = 15;
 var LEVEL_RANDOM_VALUE_MAX = 40;
-var LEVEL_TIMER = 1000; // 5 minutes
+var LEVEL_TIMER = 300 * 1000; // 5 minutes
 
-var SAVE_INTERVAL = 1000; // an hour
+var SAVE_INTERVAL = 60 * 60 * 1000; // an hour
 
 var LEVEL_RANK_UP = 10;
 
