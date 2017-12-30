@@ -149,7 +149,7 @@ function get_data(author) {
     
     let time_data = timezone.getData(author.id);
     let time;
-    if(!time_data) {
+    if(time_data == undefined) {
         time = "Not set";
     } else {
         let date = new Date;

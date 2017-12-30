@@ -119,7 +119,7 @@ function localtime(msg) {
         }
     }
     var data = userData[user.id];
-    if(!data) {
+    if(data == undefined) {
         msg.channel.send("That user did not set his timezone!");
         return;
     }
