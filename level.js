@@ -157,6 +157,9 @@ function get_data(author) {
         while(hours >= 24) {
             hours -= 24;
         }
+        while(hours <= -24) {
+            hours += 24;
+        }
         let minutes = date.getUTCMinutes();
         time =  hours + ":" + (minutes < 10 ? "0": "") + minutes;
     }
