@@ -23,12 +23,12 @@ function saveTimezone() {
  */
 function set(msg) {
     var words = msg.content.split(" ");
-    if(words.length < 3) {
+    if(words.length < 2) {
         msg.channel.send("Please specify timezone as (+/-)hour");
         return;
     }
     var userID = msg.author.id;
-    var timezone = parseInt(words[2]);
+    var timezone = parseInt(words[1]);
     if(timezone >=12 || timezone <= -12) {
         msg.channel.send("Timezone is not valid.");
         return;
@@ -140,9 +140,7 @@ module.exports = {
 
     load: function() {
         // Register commands
-        commands.reg("!timezone set", set, 2, "sets your timezone location (UTC)");
-        commands.reg("!timezone get", get, 2, "gets the timezone of the user, if user has specified it");
-        commands.reg("!localtime", localtime, 2, "gets the current time of day for the specified user");
+        commands.reg("!settimezone", set, 2, "sets your timezone location (UTC)");
 
         if(fs.existsSync(FILE)) {
             let array = JSON.parse(fs.readFileSync(FILE));
