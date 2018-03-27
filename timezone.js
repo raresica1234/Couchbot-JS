@@ -24,24 +24,39 @@ function saveTimezone() {
 function set(msg) {
     var words = msg.content.split(" ");
     if(words.length < 2) {
-        msg.channel.send("Please specify timezone as (+/-)hour");
+        msg.channel.send("Please specify timezone as (+/-)hours:minutes.");
         return;
     }
     var userID = msg.author.id;
-    var timezone = parseInt(words[1]);
-    if(timezone >=12 || timezone <= -12) {
+    var timedifference = words[1].split(":");
+    if(timedifference.length === 1) {
+      timedifference.push("00");
+    }
+    var hours = parseInt(timedifference[0]);
+    if(parseInt(timedifference[1]) < 0) {
+      msg.channel.send("Minutes cannot be negative.");
+      return;
+    }
+    var mins = hours / Math.abs(hours) * parseInt(timedifference[1]);
+    var timezone = {
+        hours: hours,
+        mins: mins
+    };
+    if(timezone.hours >=12 || timezone.hours <= -12 ||
+        timezone.mins >=60 || timezone.mins <= -60) {
         msg.channel.send("Timezone is not valid.");
         return;
     }
-    if(isNaN(timezone)) {
+    if(isNaN(timezone.hours) || isNaN(timezone.mins)) {
         msg.channel.send("Timezone has to be a number.");
         return;
     }
     userData[userID] = timezone;
-    if(timezone >= 0) {
-        msg.channel.send("Timezone set to UTC+" + timezone);            
+    var time = timezone.hours + ":" + (Math.abs(timezone.mins) < 10 ? "0": "") + Math.abs(timezone.mins);
+    if(timezone.hours >= 0) {
+        msg.channel.send("Timezone set to UTC +" + time);
     }else {
-        msg.channel.send("Timezone set to UTC" + timezone);
+        msg.channel.send("Timezone set to UTC " + time);
     }
 }
 
@@ -51,10 +66,11 @@ function get(msg) {
         var user = msg.mentions.members.array()[0];
         var userID = user.id;
         var timezone = userData[userID];
-        if(timezone >= 0) {
-            msg.channel.send("UTC+" + timezone);            
+        var time = timezone.hours + ":" + (Math.abs(timezone.mins) < 10 ? "0": "") + Math.abs(timezone.mins);
+        if(timezone.hours >= 0) {
+            msg.channel.send("UTC +" + time);
         }else {
-            msg.channel.send("UTC" + timezone);
+            msg.channel.send("UTC " + time);
         }
         return;
     }
@@ -76,10 +92,11 @@ function get(msg) {
     }
     var userID = user.id;
     var timezone = userData[userID];
+    var time = timezone.hours + ":" + (Math.abs(timezone.mins) < 10 ? "0": "") + Math.abs(timezone.mins);
     if(timezone >= 0) {
-        msg.channel.send("UTC+" + timezone);            
+        msg.channel.send("UTC +" + time);
     }else {
-        msg.channel.send("UTC" + timezone);
+        msg.channel.send("UTC " + time);
     }
 }
 
@@ -94,11 +111,15 @@ function localtime(msg) {
         }
 
         var date = new Date;
-        var hours = date.getUTCHours() + data;
+        var hours = date.getUTCHours() + data.hours;
+        var minutes = date.getUTCMinutes() + data.mins;
+        while(minutes >= 60) {
+          minutes -= 60;
+          hours += 1;
+        }
         while(hours >= 24) {
             hours -= 24;
         }
-        var minutes = date.getUTCMinutes();
         msg.channel.send(user.displayName + "'s local time is " + hours + ":" + (minutes < 10 ? "0": "") + minutes);
         return;
     }
@@ -124,11 +145,15 @@ function localtime(msg) {
         return;
     }
     var date = new Date;
-    var hours = date.getUTCHours() + data;
+    var hours = date.getUTCHours() + data.hours;
+    var minutes = date.getUTCMinutes() + data.mins;
+    while(minutes >= 60) {
+      minutes -= 60;
+      hours += 1;
+    }
     while(hours >= 24) {
         hours -= 24;
     }
-    var minutes = date.getUTCMinutes();
     msg.channel.send(user.displayName + "'s local time is " + hours + ":" + (minutes < 10 ? "0": "") + minutes);
 }
 
