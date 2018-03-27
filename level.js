@@ -39,7 +39,7 @@ function randomXp() {
 }
 
 function tick() {
-    for(user in user_data) 
+    for(user in user_data)
         if (user_data[user]["nof"] > 0) {
             uID = user_data[user]["id"];
             let found = false;
@@ -115,7 +115,7 @@ function save() {
         fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_users));
     }
     fs.writeFileSync(FILE_PATH, JSON.stringify(level_data));
-    
+
     fs.writeFileSync(NOTIFICATION_PATH, JSON.stringify(notificationChannel));
 }
 
@@ -146,21 +146,29 @@ function get_data(author) {
     newlist.sort(function(a, b) {
         return b["exp"] - a["exp"];
     })
-    
+
     let time_data = timezone.getData(author.id);
     let time;
     if(time_data == undefined) {
         time = "Not set";
     } else {
         let date = new Date;
-        let hours = date.getUTCHours() + time_data;
+        let hours = date.getUTCHours() + time_data.hours;
+        let minutes = date.getUTCMinutes() + time_data.mins;
+        while(minutes >= 60) {
+          minutes -= 60;
+          hours += 1;
+        }
+        while(minutes < 0) {
+          minutes += 60;
+          hours -= 1;
+        }
         while(hours >= 24) {
             hours -= 24;
         }
         while(hours < 0) {
             hours += 24;
         }
-        let minutes = date.getUTCMinutes();
         time =  hours + ":" + (minutes < 10 ? "0": "") + minutes;
     }
 
@@ -173,7 +181,7 @@ function get_data(author) {
                 rank = LEVEL_RANKS.length - 1;
             if (rank < 0)
                 rank = 0;
-            
+
             data.push(LEVEL_RANKS[rank]);
             data.push((newlist[user]["exp"] - (parseInt(data[0]) - 1) * LEVEL_EXPERIENCE_NEEDED).toString());
             data.push(place.toString());
@@ -186,7 +194,7 @@ function get_data(author) {
     data.push(LEVEL_RANKS[0]);
     data.push("0");
     data.push("N/A");
-    data.push(time);    
+    data.push(time);
     return data;
 }
 
@@ -196,9 +204,9 @@ function get_data(author) {
  */
 function newRankNotification(user, guild) {
     let author = guild.members.find("id", level_data[user]["id"]);
-    if (author == null ) 
+    if (author == null )
         return;
-    if (author.id == bot_id && notificationChannel == null) 
+    if (author.id == bot_id && notificationChannel == null)
         return;
     let name = author.user.username;
     if (typeof author.nickname != 'undefined' && author.nickname != null)
@@ -218,8 +226,8 @@ function newRankNotification(user, guild) {
         let channel = guild.channels.find("id", notificationChannel);
         channel.send(embed);
         channel.send("Congratulations " + author + " !");
-    }   
-        
+    }
+
 }
 
 /**
@@ -230,7 +238,7 @@ function status(msg) {
         msg.channel.send("You can't do that here, you must send the message from a server.");
         return;
     }
-    
+
     if (msg.content.toLowerCase() == "!status" || msg.content.toLowerCase() == "!status "){
         // Workaround: 'msg.member' is occasionally null then user is invisible (appears offline)
         let member = msg.guild.members.find("id", msg.author.id);
@@ -264,8 +272,8 @@ function status(msg) {
                     msg.channel.send("Rank " + result.toString() + " not found.");
                 }
             }
-            
-            
+
+
             let regex = /"([^"]*)"/g;
             let names = args.match(regex);
             if (!names) {
@@ -347,7 +355,7 @@ function top(msg) {
     newlist.sort(function(a, b) {
         return b["exp"] - a["exp"];
     })
-    
+
     let message = ""
 
     for(let i =0; i < amount; i++) {
@@ -382,10 +390,10 @@ function givexp(msg) {
         let name = data[2];
         for(let i = 3; i <= data.length - 1; i++)
             name += " " + data[i];
-        
+
         let found = false;
         if (msg.mentions.members.array().length > 0) {
-            for (user in level_data) 
+            for (user in level_data)
                 if (level_data[user]["id"] == msg.mentions.members.first().id) {
                     level_data[user]["exp"] += amount;
                     found = true;
@@ -399,7 +407,7 @@ function givexp(msg) {
 
         let member = msg.guild.members.find("displayName", name);
         if (member) {
-            for (user in level_data) 
+            for (user in level_data)
                 if (level_data[user]["id"] == member.id) {
                     level_data[user]["exp"] += amount;
                     found = true;
@@ -408,7 +416,7 @@ function givexp(msg) {
                 level_data.push({"id": member.id, "exp": amount})
             msg.channel.send(amount.toString() + " xp has been sucesfully added to " + member.displayName);
             return;
-        
+
         }
         msg.channel.send("Member not found!");
     } else {
@@ -431,10 +439,10 @@ function takexp(msg) {
         let name = data[2];
         for(let i = 3; i <= data.length - 1; i++)
             name += " " + data[i];
-        
+
         let found = false;
         if (msg.mentions.members.array().length > 0) {
-            for (user in level_data) 
+            for (user in level_data)
                 if (level_data[user]["id"] == msg.mentions.members.first().id) {
                     if(level_data[user]["exp"] >= amount)
                         level_data[user]["exp"] -= amount;
@@ -451,7 +459,7 @@ function takexp(msg) {
 
         let member = msg.guild.members.find("displayName", name);
         if (member) {
-            for (user in level_data) 
+            for (user in level_data)
                 if (level_data[user]["id"] == member.id) {
                     if(level_data[user]["exp"] >= amount)
                         level_data[user]["exp"] -= amount;
@@ -463,7 +471,7 @@ function takexp(msg) {
                 level_data.push({"id": member.id, "exp": 0})
             msg.channel.send(amount.toString() + " xp has been sucesfully taken from " + member.displayName);
             return;
-        
+
         }
         msg.channel.send("Member not found!");
     } else {
@@ -507,7 +515,7 @@ function restore(msg) {
             let member = msg.mentions.members.first();
             if(fs.existsSync(BACKUP_PATH)){
                 let backup_data = JSON.parse(fs.readFileSync(BACKUP_PATH));
-                
+
                 for(let user in backup_data) {
                     if(backup_data[user]["id"] == member.user.id){
                         let found = false;
@@ -536,7 +544,7 @@ function restore(msg) {
         if(member) {
             if(fs.existsSync(BACKUP_PATH)){
                 let backup_data = JSON.parse(fs.readFileSync(BACKUP_PATH));
-                
+
                 for(let user in backup_data) {
                     if(backup_data[user]["id"] == member.user.id){
                         let found = false;
@@ -608,9 +616,9 @@ module.exports = {
      * @param {Message} msg
      */
     processMessage: function(msg) {
-        if(msg.content.startsWith("!")) 
+        if(msg.content.startsWith("!"))
             return;
-    
+
         for(user in user_data) {
             if (msg.author.id == user_data[user]["id"]) {
                 user_data[user]["nof"] += 1;
