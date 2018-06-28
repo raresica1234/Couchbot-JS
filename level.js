@@ -94,28 +94,13 @@ function save() {
                 }
                 if(!found)
                     backup_users.push(level_data[user]);
-                level_data.splice(user, 1);
-            }
-        }
-        for(let user = backup_users.length - 1; user >= 0; user--) {
-            if(guild.members.find("id", backup_users[user]["id"]) != null) {
-                let found = false;
-                for(user2 in level_data) {
-                    if(backup_users[user]["id"] == level_data[user2]["id"]){
-                        level_data[user2] = backup_users[user];
-                        found = true;
-                    }
-                }
-                if(!found)
-                    level_data.push(backup_users[user]);
-                backup_users.splice(user, 1);
             }
         }
 
         fs.writeFileSync(BACKUP_PATH, JSON.stringify(backup_users));
     }
+
     fs.writeFileSync(FILE_PATH, JSON.stringify(level_data));
-    
     fs.writeFileSync(NOTIFICATION_PATH, JSON.stringify(notificationChannel));
 }
 
