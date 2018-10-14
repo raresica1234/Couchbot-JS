@@ -229,7 +229,7 @@ function status(msg) {
             let values = get_data(msg.mentions.members.first());
             print_status(msg.mentions.members.first(), msg.channel, values);
         } else {
-            let regexrank = /(\#\d+)/g;
+            let regexrank = /^(\#\d+)/g;
             let args = msg.content.substring(8, msg.content.length);
             if(args.match(regexrank)) {
                 let newlist = level_data;
@@ -249,7 +249,6 @@ function status(msg) {
                     msg.channel.send("Rank " + result.toString() + " not found.");
                 }
             }
-            
             
             let regex = /"([^"]*)"/g;
             let names = args.match(regex);
