@@ -77,5 +77,13 @@ bot.on('message', msg => {
     }
 });
 
+
+//
+// Redirect error
+//
+bot.on('error', console.error);
+
+//
 // Log in bot client
+//
 bot.login(botToken);
